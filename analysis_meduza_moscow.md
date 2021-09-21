@@ -129,7 +129,7 @@ ggplot(elections_fdf, aes(x=elections_electronic_prcdiff, y=elections_inperson_p
 если примирить линейную модель (которая в данном случае весьма
 качественная, R=0.92) и попытаться предсказать количество голосов
 отданных за победившего кандидата, то получится что у него на счету уже
-будут 18331 голосов. И это при вероятности в одну сотую (0.01%)
+будут 18,331 голосов. И это при вероятности в одну сотую (0.01%)
 процента, что модель завышает результат. Перемножив это на 15 округов
 получим цифру в минимум 274,976 сомнительных голосов
 
@@ -161,7 +161,9 @@ rownames(report_df) = NULL
 colnames(report_df) = c("Параметр", "Значение", " (99.98% довер. интервал)")
 p = gridExtra::grid.arrange(gridExtra::tableGrob(report_df, theme=gridExtra::ttheme_default(base_size=20, padding=unit(c(10, 10), "mm"), core=list(fg_params=list(hjust=0, x=0.05))), rows=NULL), nrow=1)
 grid::grid.newpage()
-grid::grid.draw(p)
+print(grid::grid.draw(p))
 ```
 
 ![](analysis_meduza_moscow_files/figure-markdown_github/table1-1.png)
+
+    ## NULL
