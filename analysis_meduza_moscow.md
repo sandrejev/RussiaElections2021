@@ -6,6 +6,7 @@ suppressMessages(library(ggplot2))
 suppressMessages(library(reshape2))
 suppressMessages(library(dplyr))
 suppressMessages(library(tidyr))
+suppressMessages(library(gridExtra))
 options(dplyr.summarise.inform = FALSE)
 ```
 
@@ -14,8 +15,22 @@ options(dplyr.summarise.inform = FALSE)
 Выбираем двух кандидатов с наибольшим количеством голосов
 
 ``` r
+setwd("/mnt/e/Workspace/RussiaElections2021")
 elections_df = readr::read_tsv("data/elections_meduza_final.tsv")
 ```
+
+    ## 
+    ## ── Column specification ──────────────────────────────────────────────────────────────────────────────────────────────────────────
+    ## cols(
+    ##   elections_candidate = col_character(),
+    ##   elections_inperson_count = col_double(),
+    ##   elections_electronic_count = col_double(),
+    ##   elections_total_count = col_double(),
+    ##   elections_inperson_percent = col_double(),
+    ##   elections_electronic_percent = col_double(),
+    ##   elections_total_percent = col_double(),
+    ##   elections_aik = col_double()
+    ## )
 
 ``` r
 elections_fdf = elections_df %>%
@@ -115,7 +130,8 @@ ggplot(elections_fdf, aes(x=elections_electronic_prcdiff, y=elections_inperson_p
 качественная, R=0.92) и попытаться предсказать количество голосов
 отданных за победившего кандидата, то получится что у него на счету уже
 будут 18331 голосов. И это при вероятности в одну сотую (0.01%)
-процента, что модель завышает результат.
+процента, что модель завышает результат. Перемножив это на 15 округов
+получим цифру в минимум 274,976 сомнительных голосов
 
 ``` r
 ggplot(elections_fdf, aes(x=elections_aik_electronic_count, y=elections_electronic_count1)) +
@@ -135,13 +151,17 @@ ggplot(elections_fdf, aes(x=elections_aik_electronic_count, y=elections_electron
 elections_model = lm(elections_aik_electronic_count ~ elections_electronic_count1, data=elections_fdf)
 intercept_mean = elections_model$coefficients["(Intercept)"]
 intercept_ci = confint(elections_model, "(Intercept)", level=0.9998)
-print(paste0("Коэфициент корреляции R = ", round(cor(elections_fdf$elections_aik_electronic_count, elections_fdf$elections_electronic_count1), 2)))
+R_ci = confint(elections_model, "R", level=0.9998)
+R_test = cor.test(elections_fdf$elections_aik_electronic_count, elections_fdf$elections_electronic_count1, method="pearson", conf.level=0.9998)
+
+report_df = data.frame(name="Коэфициент корреляции (R):", value=round(R_test$estimate, 2), confidence_interval=paste0("[", round(R_test$conf.int[1], 2), ", ", round(R_test$conf.int[2], 2), "]"))
+report_df = rbind(report_df, data.frame(name="Количество голосов у лидирующих кондедатов\nнеобъясняемое явкой (где x=0): ",  value=as.character(round(intercept_mean)),  confidence_interval=paste0("[", round(intercept_ci[1]), ",", round(intercept_ci[2]), "]")))
+report_df = rbind(report_df, data.frame(name="Сумарное колличество сомнительных голосов: ",  value=as.character(round(intercept_mean*nrow(elections_fdf))), confidence_interval=paste0("[", round(intercept_ci[1]*nrow(elections_fdf)), ",", round(intercept_ci[2]*nrow(elections_fdf)), "]")))
+rownames(report_df) = NULL
+colnames(report_df) = c("Параметр", "Значение", " (99.98% довер. интервал)")
+p = gridExtra::grid.arrange(gridExtra::tableGrob(report_df, theme=gridExtra::ttheme_default(base_size=20, padding=unit(c(10, 10), "mm"), core=list(fg_params=list(hjust=0, x=0.05))), rows=NULL), nrow=1)
+grid::grid.newpage()
+grid::grid.draw(p)
 ```
 
-    ## [1] "Коэфициент корреляции R = 0.92"
-
-``` r
-print(paste0("Количество голосов у лидирующих кондедатов которое невозможно объяснить явкой (абсцисса равна нулю): ",  round(intercept_mean), " (99.98% Доверительный интервал [", round(intercept_ci[1]), ",", round(intercept_ci[2]), "])"))
-```
-
-    ## [1] "Количество голосов у лидирующих кондедатов которое невозможно объяснить явкой (абсцисса равна нулю): 57133 (99.98% Доверительный интервал [18332,95935])"
+![](analysis_meduza_moscow_files/figure-markdown_github/table1-1.png)
