@@ -91,7 +91,7 @@ ggplot(elections_fdf, aes(x=elections_aik_electronic_count, y=elections_electron
   labs(x="Количество голосов поданных электронно", y="Количество электронных голосов у кандидата", size="Отношение явки\nэлектронно/на участках", color="Перевес засчет...") +
   theme_gray(base_size=18)
 ```
-```{r table1, fig.height=3, fig.width=12}
+```{r table1, fig.height=2.9, fig.width=12}
 elections_model = lm(elections_aik_electronic_count ~ elections_electronic_count1, data=elections_fdf)
 intercept_mean = elections_model$coefficients["(Intercept)"]
 intercept_ci = confint(elections_model, "(Intercept)", level=0.9998)
