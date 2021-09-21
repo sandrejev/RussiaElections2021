@@ -161,9 +161,7 @@ rownames(report_df) = NULL
 colnames(report_df) = c("Параметр", "Значение", " (99.98% довер. интервал)")
 p = gridExtra::grid.arrange(gridExtra::tableGrob(report_df, theme=gridExtra::ttheme_default(base_size=20, padding=unit(c(10, 10), "mm"), core=list(fg_params=list(hjust=0, x=0.05))), rows=NULL), nrow=1)
 grid::grid.newpage()
-print(grid::grid.draw(p))
+grid::grid.draw(p)
 ```
 
 ![](analysis_meduza_moscow_files/figure-markdown_github/table1-1.png)
-
-    ## NULL
